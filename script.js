@@ -2,15 +2,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const addTaskBtn = document.getElementById('add-task-btn');
   const taskList = document.querySelector('.task-list');
   const importantTaskList = document.querySelector('.important-task-list');
+  const plannedTaskList = document.querySelector('.planned-task-list');
   const taskInput = document.getElementById('task-input');
+  const dueDateInput = document.getElementById('due-date-input');
   const navLinks = document.querySelectorAll('.menu .nav-link');
   const starButtons = document.querySelectorAll('.star-btn');
   const importantLink = document.querySelector('.menu .nav-link:nth-child(2)');
   const myDayLink = document.querySelector('.menu .nav-link:nth-child(1)');
+  const plannedLink = document.querySelector('.menu .nav-link:nth-child(3)');
 
   const tasks = []; // Array to store all tasks
 
-  function createTask(name) {
+  function isToday(dueDate) {
+      const today = new Date();
+      return (
+          dueDate.getFullYear() === today.getFullYear() &&
+          dueDate.getMonth() === today.getMonth() &&
+          dueDate.getDate() === today.getDate()
+      );
+  }
+
+  function createTask(name, dueDate) {
       const taskItem = document.createElement('div');
       taskItem.classList.add('task');
 
@@ -28,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const taskText = document.createElement('span');
       taskText.textContent = name;
       taskText.className = 'task-text';
+
+      const taskDueDate = document.createElement('span');
+      taskDueDate.textContent = dueDate.toLocaleDateString(); // Format the date
+      taskDueDate.className = 'task-due-date';
 
       const taskActionsContainer = document.createElement('div');
       taskActionsContainer.classList.add('task-actions');
@@ -53,7 +69,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       taskItem.appendChild(taskCheckbox);
       taskItem.appendChild(taskText);
+      taskItem.appendChild(taskDueDate);
       taskItem.appendChild(taskActionsContainer);
+
+      if (isToday(dueDate)) {
+          myDayLink.classList.add('active');
+          taskList.appendChild(taskItem);
+      } else {
+          plannedTaskList.appendChild(taskItem);
+      }
 
       return taskItem;
   }
@@ -66,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
           importantTaskList.appendChild(taskItem);
           tasks[index].important = true;
       } else {
-          taskList.appendChild(taskItem);
+          plannedTaskList.appendChild(taskItem);
           tasks[index].important = false;
       }
       updateNavLinksActiveState();
@@ -107,11 +131,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addTaskBtn.addEventListener('click', () => {
       const taskName = taskInput.value.trim();
-      if (taskName) {
-          const taskItem = createTask(taskName);
-          taskList.appendChild(taskItem);
-          tasks.push({ name: taskName, important: false });
+      const dueDate = new Date(dueDateInput.value);
+
+      if (taskName && dueDate) {
+          const taskItem = createTask(taskName, dueDate);
+          tasks.push({ name: taskName, important: false, dueDate: dueDate });
           taskInput.value = '';
+          dueDateInput.value = '';
       }
   });
 
@@ -122,14 +148,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const index = navLink.getAttribute('data-index');
           switch (index) {
-              case '1': // Important
+              case '1':
                   importantTaskList.classList.remove('hidden');
                   taskList.classList.add('hidden');
+                  plannedTaskList.classList.add('hidden');
                   showImportantTasks();
                   break;
-              default: // My Day, Planned, or Tasks
+              case '2':
+                  plannedTaskList.classList.remove('hidden');
+                  taskList.classList.add('hidden');
+                  importantTaskList.classList.add('hidden');
+                  showPlannedTasks();
+                  break;
+              default:
                   taskList.classList.remove('hidden');
                   importantTaskList.classList.add('hidden');
+                  plannedTaskList.classList.add('hidden');
                   showSelectedTasks(index);
                   break;
           }
@@ -149,18 +183,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       taskItems.forEach(taskItem => {
           const isImportant = taskItem.classList.contains('important');
+          const taskDueDate = new Date(tasks.find(task => task.name === taskItem.querySelector('.task-text').textContent).dueDate);
+
           switch (index) {
-              case '0': // My Day
-                  // Implement logic to show "My Day" tasks
-                  break;
-              case '2': // Planned
-                  // Implement logic to show "Planned" tasks
-                  break;
-              default: // Tasks (All tasks)
-                  if (isImportant && index !== '1') {
-                      taskItem.style.display = 'none'; // Hide starred tasks
+              case '0':
+                  if (isToday(taskDueDate)) {
+                      taskItem.style.display = 'block';
                   } else {
-                      taskItem.style.display = 'block'; // Show all other tasks
+                      taskItem.style.display = 'none';
+                  }
+                  break;
+              default:
+                  if (isImportant && index !== '1') {
+                      taskItem.style.display = 'none';
+                  } else {
+                      taskItem.style.display = 'block';
                   }
                   break;
           }
@@ -172,20 +209,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
       taskItems.forEach(taskItem => {
           if (taskItem.classList.contains('important')) {
-              taskItem.style.display = 'block'; // Show starred tasks
+              taskItem.style.display = 'block';
           } else {
-              taskItem.style.display = 'none'; // Hide unstarred tasks
+              taskItem.style.display = 'none';
           }
       });
+  }
+
+  function showPlannedTasks() {
+      const taskItems = document.querySelectorAll('.task');
+
+      taskItems.forEach(taskItem => {
+          const isImportant = taskItem.classList.contains('important');
+          const taskDueDate = new Date(tasks.find(task => task.name === taskItem.querySelector('.task-text').textContent).dueDate);
+
+          if (!isToday(taskDueDate) && !isImportant && isSameDay(taskDueDate, new Date())) {
+              taskItem.style.display = 'block';
+          } else {
+              taskItem.style.display = 'none';
+          }
+      });
+  }
+
+  function isSameDay(dateA, dateB) {
+      return (
+          dateA.getFullYear() === dateB.getFullYear() &&
+          dateA.getMonth() === dateB.getMonth() &&
+          dateA.getDate() === dateB.getDate()
+      );
   }
 
   function updateNavLinksActiveState() {
       if (importantTaskList.children.length > 0) {
           importantLink.classList.add('active');
           myDayLink.classList.remove('active');
+          plannedLink.classList.remove('active');
+      } else if (plannedTaskList.children.length > 0) {
+          plannedLink.classList.add('active');
+          myDayLink.classList.remove('active');
+          importantLink.classList.remove('active');
       } else {
           myDayLink.classList.add('active');
           importantLink.classList.remove('active');
+          plannedLink.classList.remove('active');
       }
   }
 });

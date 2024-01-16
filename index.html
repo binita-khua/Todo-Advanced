@@ -11,7 +11,7 @@
         <header class="app-header">
             <input type="text" id="search-box" placeholder="Search">
         </header>
-
+    
         <aside class="sidebar">
             <ul class="menu">
                 <li class="nav-link" data-index="0">My Day</li>
@@ -20,15 +20,19 @@
                 <li class="nav-link active" data-index="3">Tasks</li>
             </ul>
         </aside>
-
+    
         <main class="task-view">
             <input type="text" id="task-input" placeholder="Enter a new task here">
+            <input type="date" id="due-date-input" placeholder="Due Date" required>
             <button id="add-task-btn">Add a task</button>
             <div class="task-list">
                 <!-- Tasks will be dynamically added here -->
             </div>
             <div class="important-task-list hidden">
                 <!-- Important tasks will be dynamically added here -->
+            </div>
+            <div class="planned-task-list hidden">
+                <!-- Planned tasks will be dynamically added here -->
             </div>
         </main>
     </div>
