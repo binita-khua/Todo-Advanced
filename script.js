@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const navLinks = document.querySelectorAll('.menu .nav-link');
   const starButtons = document.querySelectorAll('.star-btn');
   const importantLink = document.querySelector('.menu .nav-link:nth-child(2)');
-  const myDayLink = document.querySelector('.menu .nav-link:first-child');
+  const myDayLink = document.querySelector('.menu .nav-link:nth-child(1)');
 
   const tasks = []; // Array to store all tasks
 
@@ -63,12 +63,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const index = tasks.findIndex(task => task.name === name);
 
       if (isImportant) {
+          importantTaskList.appendChild(taskItem);
           tasks[index].important = true;
       } else {
+          taskList.appendChild(taskItem);
           tasks[index].important = false;
       }
       updateNavLinksActiveState();
-      showImportantTasks();
   }
 
   function makeEditable(taskTextElement, editButton) {
@@ -102,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
           tasks.splice(index, 1);
       }
       updateNavLinksActiveState();
-      showImportantTasks();
   }
 
   addTaskBtn.addEventListener('click', () => {
@@ -120,9 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
           navLinks.forEach(link => link.classList.remove('active'));
           navLink.classList.add('active');
 
-          const index = Array.from(navLinks).indexOf(navLink);
+          const index = navLink.getAttribute('data-index');
           switch (index) {
-              case 1: // Important
+              case '1': // Important
                   importantTaskList.classList.remove('hidden');
                   taskList.classList.add('hidden');
                   showImportantTasks();
@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
               default: // My Day, Planned, or Tasks
                   taskList.classList.remove('hidden');
                   importantTaskList.classList.add('hidden');
+                  showSelectedTasks(index);
                   break;
           }
       });
@@ -143,14 +144,37 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  function showImportantTasks() {
-      importantTaskList.innerHTML = ''; // Clear the Important list
+  function showSelectedTasks(index) {
+      const taskItems = document.querySelectorAll('.task');
 
-      tasks.forEach(task => {
-          if (task.important) {
-              const taskItem = createTask(task.name);
-              importantTaskList.appendChild(taskItem);
-              taskItem.classList.add('important');
+      taskItems.forEach(taskItem => {
+          const isImportant = taskItem.classList.contains('important');
+          switch (index) {
+              case '0': // My Day
+                  // Implement logic to show "My Day" tasks
+                  break;
+              case '2': // Planned
+                  // Implement logic to show "Planned" tasks
+                  break;
+              default: // Tasks (All tasks)
+                  if (isImportant && index !== '1') {
+                      taskItem.style.display = 'none'; // Hide starred tasks
+                  } else {
+                      taskItem.style.display = 'block'; // Show all other tasks
+                  }
+                  break;
+          }
+      });
+  }
+
+  function showImportantTasks() {
+      const taskItems = document.querySelectorAll('.task');
+
+      taskItems.forEach(taskItem => {
+          if (taskItem.classList.contains('important')) {
+              taskItem.style.display = 'block'; // Show starred tasks
+          } else {
+              taskItem.style.display = 'none'; // Hide unstarred tasks
           }
       });
   }
