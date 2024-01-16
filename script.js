@@ -31,6 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function createTask(name, dueDate) {
+    // Adjust for the timezone offset
+    const timezoneOffset = dueDate.getTimezoneOffset();
+    dueDate = new Date(dueDate.getTime() + timezoneOffset * 60 * 1000);
+
     const taskItem = document.createElement('div');
     taskItem.classList.add('task');
 
@@ -231,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const isImportant = taskItem.classList.contains('important');
       const taskDueDate = new Date(tasks.find(task => task.name === taskItem.querySelector('.task-text').textContent).dueDate);
 
-      if (!isToday(taskDueDate) && !isImportant) {
+      if (!isSameDay(taskDueDate, new Date()) && !isImportant) {
         taskItem.style.display = 'block';
       } else {
         taskItem.style.display = 'none';
